@@ -1,6 +1,6 @@
 SELECT 
-	      invoice_customer_number, 
-	      AVG(payment_date-invoice_date) avg_pay_time
+	      invoice_customer_number AS customer_number, 
+	      AVG(payment_date-invoice_date) avg_pay_time AS avg_pay_time_days
 FROM 
         (	
           SELECT 
