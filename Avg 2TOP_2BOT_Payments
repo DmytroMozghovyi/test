@@ -1,0 +1,50 @@
+SELECT
+        t1.customer_number,
+        t1.pa - t2.pa AS diff
+FROM
+        (
+            SELECT 
+                    t.customer_number, 
+                    AVG(t.payment_amount) AS pa
+            FROM 
+                    (
+                        SELECT 
+                                customer_number, 
+                                payment_amount,
+                                ROW_NUMBER () OVER (PARTITION BY customer_number ORDER BY payment_amount DESC) AS rn_top
+                        FROM 
+                                payment
+                        WHERE 
+                                payment_amount IS NOT NULL
+                    ) AS t
+            WHERE 
+                    t.rn_top IN (1,2)
+            GROUP BY 
+                    t.customer_number
+        ) AS t1
+
+        JOIN
+
+        (
+            SELECT 
+                    t.customer_number, 
+                    AVG(t.payment_amount) AS pa
+            FROM 
+                    (
+                        SELECT 
+                                customer_number, 
+                                payment_amount,
+                                ROW_NUMBER () OVER (PARTITION BY customer_number ORDER BY payment_amount) AS rn_bot
+                        FROM 
+                                payment
+                        WHERE 
+                                payment_amount IS NOT NULL
+                    ) AS t
+            WHERE 
+                    t.rn_bot IN (1,2)
+            GROUP BY 
+                    t.customer_number
+        ) AS t2
+
+        ON 
+            t1.customer_number = t2.customer_number;
