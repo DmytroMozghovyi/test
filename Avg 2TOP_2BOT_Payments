@@ -1,4 +1,4 @@
-SELECT
+SELECT   
         t1.customer_number,
         t1.pa - t2.pa AS diff
 FROM
