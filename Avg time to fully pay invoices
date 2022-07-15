@@ -1,0 +1,57 @@
+SELECT 
+	      invoice_customer_number, 
+	      AVG(payment_date-invoice_date) avg_pay_time
+FROM 
+        (	
+          SELECT 
+                  invoice_customer_number, 
+                  invoice_date, 
+                  invoice_amount, 
+                  payment_customer_number, 
+                  payment_date, 
+                  payment_amount, 
+                  pay,
+                  ROW_NUMBER() OVER(PARTITION BY payment_customer_number, invoice_date ORDER BY payment_date) AS rn
+           FROM  
+                  (
+                     SELECT 
+                             t1.customer_number AS invoice_customer_number,
+                             t1.issue_date AS invoice_date,
+                             t1.invoice_amount,
+                             t2.customer_number AS payment_customer_number,
+                             t2.issue_date AS payment_date,
+                             t2.payment_amount,
+                             CASE WHEN t2.payment_amount >= t1.invoice_amount AND
+                                   t2.issue_date >= t1.issue_date
+                             THEN 1
+                             ELSE 0
+                             END	pay
+                     FROM
+                            (
+                               SELECT 
+                                      customer_number, 
+                                      issue_date, 
+                                      invoice_amount
+                               FROM 
+                                      payment
+                               WHERE 
+                                      invoice_amount IS NOT NULL
+                            ) t1 
+                     JOIN 
+                            (
+                              SELECT 
+                                customer_number, 
+                                issue_date, 
+                                payment_amount
+                              FROM 
+                                payment
+                              WHERE payment_amount IS NOT NULL
+                            ) t2
+                     ON   
+                          t1.customer_number = t2.customer_number
+                          AND t1.issue_date <= t2.issue_date
+                   ) t3
+          WHERE pay = 1
+        ) t4
+WHERE rn = 1
+GROUP BY invoice_customer_number;
