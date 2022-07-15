@@ -1,6 +1,6 @@
 SELECT   
         t1.customer_number,
-        t1.pa - t2.pa AS diff
+        t1.pa - t2.pa AS difference_top2_bot2_payments
 FROM
         (
             SELECT 
